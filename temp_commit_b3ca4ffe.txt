@@ -1,4 +1,0 @@
-Commit: feat: implementación de búsqueda avanzada
-Fecha: 06/06/2025 10:58:28
-
-Este archivo es parte del commit para: implementación de búsqueda avanzada

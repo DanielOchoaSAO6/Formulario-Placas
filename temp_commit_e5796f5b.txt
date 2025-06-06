@@ -1,4 +1,0 @@
-Commit: feat: configuración de integración con Google Sheets
-Fecha: 06/06/2025 10:57:10
-
-Este archivo es parte del commit para: configuración de integración con Google Sheets

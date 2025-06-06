@@ -1,4 +1,0 @@
-Commit: feat: implementación de páginas principales del frontend
-Fecha: 06/06/2025 10:57:13
-
-Este archivo es parte del commit para: implementación de páginas principales del frontend
