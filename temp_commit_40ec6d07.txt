@@ -1,0 +1,4 @@
+Commit: feat: implementación de autenticación de usuarios
+Fecha: 06/06/2025 10:57:08
+
+Este archivo es parte del commit para: implementación de autenticación de usuarios
