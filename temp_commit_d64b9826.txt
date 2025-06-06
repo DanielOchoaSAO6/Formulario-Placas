@@ -1,0 +1,4 @@
+Commit: refactor: reorganización de la estructura de componentes
+Fecha: 06/06/2025 10:58:35
+
+Este archivo es parte del commit para: reorganización de la estructura de componentes
