@@ -1,0 +1,133 @@
+type User {
+  id: ID!
+  email: String!
+  name: String
+  role: Role!
+  posts: [Post!]!
+  vehicles: [Vehicle!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Post {
+  id: ID!
+  title: String!
+  content: String
+  published: Boolean!
+  author: User!
+  createdAt: String!
+  updatedAt: String!
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+input CreateUserInput {
+  email: String!
+  password: String!
+  name: String
+}
+
+input LoginUserInput {
+  email: String!
+  password: String!
+}
+
+# Esta definición se mantiene por compatibilidad con código existente
+# pero ahora también permitimos login directo con id y password
+
+input CreatePostInput {
+  title: String!
+  content: String
+  published: Boolean
+}
+
+input UpdatePostInput {
+  id: ID!
+  title: String
+  content: String
+  published: Boolean
+}
+
+type Query {
+  me: User
+  users: [User!]!
+  user(id: ID!): User
+  posts: [Post!]!
+  post(id: ID!): Post
+  postsByUser(userId: ID!): [Post!]!
+  getVehicleByPlaca(placa: String!): Vehicle
+  getAllVehicles(skip: Int, take: Int): VehicleConnection!
+  getVehicleVerificationLogs(skip: Int, take: Int): VehicleVerificationLogConnection!
+}
+
+type Mutation {
+  signup(input: CreateUserInput!): AuthPayload!
+  login(id: String!, password: String!): AuthPayload!
+  createPost(input: CreatePostInput!): Post!
+  updatePost(input: UpdatePostInput!): Post!
+  deletePost(id: ID!): Post!
+  publishPost(id: ID!): Post!
+  logVehicleVerification(input: VehicleVerificationInput!): VehicleVerificationLog!
+  createVehicle(input: CreateVehicleInput!): Vehicle!
+}
+
+type Vehicle {
+  id: ID!
+  placa: String!
+  estado: String!
+  tipoVehiculo: String!
+  origen: String!
+  conductorId: String
+  conductor: User
+  cargo: String!
+  area: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type VehicleConnection {
+  vehicles: [Vehicle!]!
+  totalCount: Int!
+}
+
+type VehicleVerificationLog {
+  id: ID!
+  placa: String!
+  encontrado: Boolean!
+  userId: String
+  user: User
+  startTime: String!
+  endTime: String!
+  createdAt: String!
+}
+
+type VehicleVerificationLogConnection {
+  logs: [VehicleVerificationLog!]!
+  totalCount: Int!
+}
+
+input VehicleVerificationInput {
+  placa: String!
+  encontrado: Boolean!
+  userId: String
+  startTime: String
+  endTime: String!
+}
+
+input CreateVehicleInput {
+  placa: String!
+  conductorId: String
+  estado: String
+  tipoVehiculo: String
+  origen: String
+  cargo: String
+  area: String
+}

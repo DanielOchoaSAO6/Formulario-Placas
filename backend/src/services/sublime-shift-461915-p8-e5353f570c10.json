@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "sublime-shift-461915-p8",
+  "private_key_id": "e5353f570c10cab64958d3fe27f02a1f6bf28806",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC3gnCcdtc2IVds\nM3Vo/uuSQmT4TMqcfkXTVHJ5YYkA+ZmTQ8oBOXR4pAuQCpLSCLlInr8JobWLe1fj\nMIRy1hd5/c8aBONo63uz/n3xqFx6P6cQE8lYZI6UQEB5+vh0YCxyDJtiTnvuSui2\nw8U7CeIJBeqcSd6ZxeSDZlhvaE0ta/PCOlkL9npO+NVyg8F3VJaytgiL7ohIptF8\nlrKM7DcbtW/clQmiBhW5PRpOKg4ZJIoFGoExWlGbTMeqveWo70iLG5RRlcN7nKUz\nluP6mkDIVuWkhcMjjp9rQ0JMEn5APIKQ9ftfx7xJTPbBig+YJDsYm9UV0aV2Kh1+\nAOlAD967AgMBAAECggEAPu2Gg0kHZMMLMQn2XaJpErcc276tjfuJIz5moPQO4Jw3\nCzZoS4Ixy/rpEiRmE4s1Sk9RkFJ5KFMMINau3JhI5abhAXmiqAR0X5VKB/flenBg\ncBVw6pRVBkaANbQXxgSCyTtEf3INcnoSkjXQ6P1rGxAB00VLhazEP0D124JHUOcK\nnhbzfNV2Xgy2x6aPP9Vcz761nayTbzJAtgnINH+HOAq+y6LGriCuPvLbCcPJpiuU\nvlxGgAy2LsG5f+3gTszPi9wow2ioXXPVaMThnt49ATh783kvhd8wZddHy7xXYTWO\npJ3EYX3/SxAGEqXYOYB0ZIsWgq5EDSxMIyP+IHaRBQKBgQDiS9X28bfduigpNJqi\nXeR2U7aCOyqFDdWY2EogG8ENso0d0G6t/kQ8/thU/P39+6DUfW1v9YrxOjF4l5sv\nwxE3GbSfn+hNzRtuomzkVaaElViSdWOwHVM3JveM+uS8Pywikyc8eW6//AvO6f7H\nJ6qm+IKyPYbLZe/569klZrpg9QKBgQDPmNr7U/J+Tx90zWymqsy8NnlGfHuezr2+\nTYEFIBswV21xsYyVquJNMiXqEE6USazvT/7kUH/v9cHSi2Hn+6Vkm68W07Ws4dNU\nAaShu4UIAhANqgUOJ2mFfwnAb0owXf55swriswmQGhH9JVRsp1mWcBTozEni+NTR\nAhy5UvGy7wKBgQCoHg7nVsxyPUp40kvPNFH2VlrQhYQhNRXqZ0UqdXQG6Q9Nhvuy\n56NqbSnqecl4Vug09LnI43JFpCX8oST5ZsHzXXWC4RmEM0yd9K1RNRBwj0MuC2fz\n/tVDs/9VDU/BSm1PgmMz2kMc/fMH1W8iJaXyRc1S/cKWeTS/RygbUSZFwQKBgAtu\nlniKqersvoW3HkmbVET1Fv6bsk8PgYFuUTGQEA88cUl2hpBjZazsmwvls/4UhJJ1\nLEs0Z6c2OGM4y75zrCr7K8wtAm8vzGxu3rsNUYkcW/f0qeyanQP99/KB7mr1ciMP\nigTr6RXnaaAwIxMMsDFJoM0lGtiF7WpJHH3UJH0/AoGANVOpSP81tunMmFtBd6Qa\nAmnneWIu3aRIoPL6sg+XHlnEtGpQ/YI2Hnap9KHrLR1kfv31SirngeMSC+qUT6aD\nzTSNwFCZ94QIDA4uGDft2Wfv+f1APaCnWLj6+v6EUwVVZlduAySdsDbLXJT4nZJL\nLxKhqEchks+wq/CU4xeUqLo=\n-----END PRIVATE KEY-----\n",
+  "client_email": "placas-patios-app@sublime-shift-461915-p8.iam.gserviceaccount.com",
+  "client_id": "113478551658381143803",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/placas-patios-app%40sublime-shift-461915-p8.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

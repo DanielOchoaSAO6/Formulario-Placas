@@ -1,0 +1,67 @@
+// Prisma schema para aplicación con GraphQL y Express
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "foreignKeys"
+}
+
+model User {
+  id                 String                  @id // Cédula como identificador
+  email              String                  @unique
+  password           String
+  name               String
+  role               Role                    @default(USER)
+  posts              Post[]
+  vehicles           Vehicle[]               // Relación con vehículos asignados
+  verificationLogs   VehicleVerificationLog[] // Relación con logs de verificación
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Modelo para los vehículos basado en la estructura del CSV
+model Vehicle {
+  id            String   @id @default(uuid())
+  placa         String   @unique // Placa del vehículo
+  estado        String   // Activo, Inactivo, etc.
+  tipoVehiculo  String   // MOTOCICLETA, AUTOMOVIL, etc.
+  origen        String   // PESV u otros
+  conductor     User?    @relation(fields: [conductorId], references: [id])
+  conductorId   String?  // Cédula del conductor (opcional)
+  cargo         String   // Cargo del conductor
+  area          String   // Área del conductor
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Modelo para registrar las verificaciones de vehículos
+model VehicleVerificationLog {
+  id            String   @id @default(uuid())
+  placa         String   // Placa buscada
+  encontrado    Boolean  // Si se encontró o no el vehículo
+  userId        String?  // ID del usuario que realizó la búsqueda (opcional)
+  user          User?    @relation(fields: [userId], references: [id])
+  startTime     DateTime @default(now()) // Hora de inicio de la búsqueda
+  endTime       DateTime // Hora de finalización de la búsqueda
+  createdAt     DateTime @default(now())
+}
+
+enum Role {
+  USER
+  ADMIN
+}
