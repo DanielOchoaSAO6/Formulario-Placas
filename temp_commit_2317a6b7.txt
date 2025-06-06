@@ -1,0 +1,4 @@
+Commit: i18n: soporte para múltiples idiomas
+Fecha: 06/06/2025 10:58:36
+
+Este archivo es parte del commit para: soporte para múltiples idiomas
