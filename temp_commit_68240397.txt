@@ -1,0 +1,4 @@
+Commit: feat: implementación de exportación de datos a Excel
+Fecha: 06/06/2025 10:58:25
+
+Este archivo es parte del commit para: implementación de exportación de datos a Excel
