@@ -1,4 +1,0 @@
-Commit: feat: configuración de la base de datos con Prisma
-Fecha: 06/06/2025 10:57:06
-
-Este archivo es parte del commit para: configuración de la base de datos con Prisma

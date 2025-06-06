@@ -1,4 +1,0 @@
-Commit: deploy: configuración para despliegue en producción
-Fecha: 06/06/2025 10:58:38
-
-Este archivo es parte del commit para: configuración para despliegue en producción

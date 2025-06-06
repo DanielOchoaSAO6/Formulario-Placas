@@ -1,4 +1,0 @@
-Commit: feat: implementación de componentes UI base con Radix UI
-Fecha: 06/06/2025 10:57:11
-
-Este archivo es parte del commit para: implementación de componentes UI base con Radix UI

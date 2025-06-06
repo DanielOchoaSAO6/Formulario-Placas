@@ -1,4 +1,0 @@
-Commit: feat: implementación del esquema GraphQL base
-Fecha: 06/06/2025 10:57:04
-
-Este archivo es parte del commit para: implementación del esquema GraphQL base

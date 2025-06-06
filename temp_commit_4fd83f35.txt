@@ -1,4 +1,0 @@
-Commit: feat: implementación del modelo Vehicle en Prisma
-Fecha: 06/06/2025 10:57:07
-
-Este archivo es parte del commit para: implementación del modelo Vehicle en Prisma

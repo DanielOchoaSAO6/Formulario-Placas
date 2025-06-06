@@ -1,4 +1,0 @@
-Commit: fix: compatibilidad entre Express 5.1.0 y Apollo Server 3.13.0
-Fecha: 06/06/2025 10:58:10
-
-Este archivo es parte del commit para: compatibilidad entre Express 5.1.0 y Apollo Server 3.13.0

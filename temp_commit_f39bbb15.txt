@@ -1,4 +1,0 @@
-Commit: feat: configuración de entorno de desarrollo
-Fecha: 06/06/2025 10:57:01
-
-Este archivo es parte del commit para: configuración de entorno de desarrollo

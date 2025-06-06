@@ -1,4 +1,0 @@
-Commit: security: mejora de seguridad en la autenticación
-Fecha: 06/06/2025 10:58:32
-
-Este archivo es parte del commit para: mejora de seguridad en la autenticación
