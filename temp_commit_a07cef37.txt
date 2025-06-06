@@ -1,0 +1,4 @@
+Commit: feat: implementación de importación de datos desde CSV
+Fecha: 06/06/2025 10:58:11
+
+Este archivo es parte del commit para: implementación de importación de datos desde CSV
