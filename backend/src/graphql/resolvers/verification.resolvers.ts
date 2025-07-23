@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { UserInputError } from 'apollo-server-express';
+import { googleSheetsService } from '../../services/googleSheets.service';
 
 const prisma = new PrismaClient();
 
@@ -9,15 +10,18 @@ export const verificationResolvers = {
     getVehicleVerificationLogs: async (_: any, { skip = 0, take = 10 }: { skip?: number; take?: number }) => {
       try {
         // Obtener logs con paginación
+        console.log(`Consultando logs con skip=${skip}, take=${take}`);
         const logs = await prisma.vehicleVerificationLog.findMany({
           skip,
           take,
           orderBy: { startTime: 'desc' },
           include: { user: true }
         });
+        console.log(`Logs encontrados: ${logs.length}`);
         
         // Contar el total de logs
         const totalCount = await prisma.vehicleVerificationLog.count();
+        console.log(`Total de logs en la base de datos: ${totalCount}`);
         
         return {
           logs,
@@ -49,7 +53,7 @@ export const verificationResolvers = {
           throw new UserInputError('La hora de finalización es obligatoria');
         }
         
-        // Crear el registro de verificación
+        // Crear el registro de verificación en la base de datos
         const log = await prisma.vehicleVerificationLog.create({
           data: {
             placa: placa.toUpperCase().trim(),
@@ -62,6 +66,25 @@ export const verificationResolvers = {
             user: true
           }
         });
+        
+        // Guardar también en Google Sheets (hoja Busquedas)
+        try {
+          const startTimeDate = startTime ? new Date(startTime) : new Date();
+          const endTimeDate = new Date(endTime);
+          
+          await googleSheetsService.addVehicleVerificationLog(
+            placa.toUpperCase().trim(),
+            encontrado,
+            userId,
+            startTimeDate,
+            endTimeDate
+          );
+          
+          console.log(`Verificación de vehículo ${placa} guardada en Google Sheets`);
+        } catch (sheetsError) {
+          // No interrumpir el flujo si hay error al guardar en Google Sheets
+          console.error('Error al guardar en Google Sheets:', sheetsError);
+        }
         
         return log;
       } catch (error) {

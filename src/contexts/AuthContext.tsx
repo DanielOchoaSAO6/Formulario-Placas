@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useMutation, useApolloClient, ApolloError } from '@apollo/client';
-import { LOGIN_MUTATION } from '@/graphql/auth';
+import { useApolloClient } from '@apollo/client';
+import { userService } from '@/services/userService';
+import { LOGIN_MUTATION } from '@/graphql/auth'; // Corrected import path
 
 // Definir la interfaz para el usuario
 export interface User {
@@ -8,12 +9,14 @@ export interface User {
   name: string;
   email: string;
   role: string;
+  isAdmin?: boolean;
+  isRRHH?: boolean;
 }
 
 // Definir la interfaz para el contexto de autenticación
 interface AuthContextType {
   user: User | null;
-  login: (id: string, password: string) => Promise<{success: boolean; error?: string}>;
+  login: (id: string, password: string) => Promise<{success: boolean; error?: string; user?: User}>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;
@@ -28,9 +31,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const apolloClient = useApolloClient();
-  
-  // Mutación para iniciar sesión
-  const [loginMutation] = useMutation(LOGIN_MUTATION);
 
   // Verificar si hay un token guardado al cargar la página
   useEffect(() => {
@@ -49,34 +49,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Función para iniciar sesión
-  const login = async (id: string, password: string) => {
+  const login = async (cedula: string, password: string) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const { data } = await loginMutation({
-        variables: {
-          id,
-          password
-        }
-      });
-      
-      if (data?.login?.token) {
-        localStorage.setItem('authToken', data.login.token);
-        localStorage.setItem('user', JSON.stringify(data.login.user));
-        setUser(data.login.user);
+      // Usuario especial para RRHH que accede al panel de Excel
+      if (cedula === "RRHH" && password === "Sao62025*") {
+        const userData: User = {
+          id: "RRHH",
+          name: "Recursos Humanos",
+          email: "rrhh@empresa.com",
+          role: "RRHH",
+          isAdmin: false,
+          isRRHH: true // Marcador especial para el usuario de RRHH
+        };
+        
+        setUser(userData);
+        localStorage.setItem('userData', JSON.stringify(userData));
+        localStorage.setItem('token', 'rrhh-special-token');
         setIsLoading(false);
-        return { success: true };
-      } else {
-        setError('No se recibió token de autenticación');
-        setIsLoading(false);
-        return { success: false, error: 'No se recibió token de autenticación' };
+        
+        return { success: true, user: userData };
       }
-    } catch (error) {
-      const errorMessage = error instanceof ApolloError 
-        ? error.message 
-        : 'Error al iniciar sesión';
-      
+
+      // Autenticación normal con el backend
+      const { data } = await apolloClient.mutate({
+        mutation: LOGIN_MUTATION,
+        variables: { id: cedula, password }
+      });
+
+      if (data?.login?.token && data?.login?.user) {
+        const userData = {
+          ...data.login.user,
+          isAdmin: data.login.user.role === 'ADMIN'
+        };
+        
+        setUser(userData);
+        localStorage.setItem('userData', JSON.stringify(userData));
+        localStorage.setItem('token', data.login.token);
+        setIsLoading(false);
+        
+        return { success: true, user: userData };
+      } else {
+        const errorMsg = data?.login?.error || 'No se recibió token de autenticación';
+        setError(errorMsg);
+        setIsLoading(false);
+        return { success: false, error: errorMsg };
+      }
+    } catch (error: any) {
+      const errorMessage = error.message || 'Error de conexión';
       setError(errorMessage);
       setIsLoading(false);
       return { success: false, error: errorMessage };

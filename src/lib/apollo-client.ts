@@ -3,7 +3,7 @@ import { setContext } from '@apollo/client/link/context';
 
 // URL del backend GraphQL
 const httpLink = createHttpLink({
-  uri: 'http://localhost:4000/graphql',
+  uri: 'https://vehicar.sao6.com.co/api/graphql',
 });
 
 // Configuración para incluir el token JWT en cada solicitud

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { gql, useLazyQuery } from '@apollo/client';
 import {
   Box,
@@ -18,6 +18,7 @@ import {
   TableRow
 } from '@mui/material';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import { useLocation } from 'react-router-dom';
 
 // Definición de la consulta GraphQL
 const GET_VEHICLE_BY_PLACA = gql`
@@ -42,6 +43,18 @@ const GET_VEHICLE_BY_PLACA = gql`
 const VehicleVerification: React.FC = () => {
   const [placa, setPlaca] = useState('');
   const [searchPerformed, setSearchPerformed] = useState(false);
+  const [startTour, setStartTour] = useState(false);
+  
+  // Obtener parámetros de la URL para verificar si debemos iniciar el tour
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Verificar si hay un parámetro startTour=true en la URL
+    const params = new URLSearchParams(location.search);
+    if (params.get('startTour') === 'true') {
+      setStartTour(true);
+    }
+  }, [location]);
   
   // Consulta GraphQL para buscar vehículo
   const [getVehicle, { loading, error, data }] = useLazyQuery(GET_VEHICLE_BY_PLACA, {
@@ -73,7 +86,7 @@ const VehicleVerification: React.FC = () => {
   };
   
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>      
       <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <DirectionsCarIcon color="primary" sx={{ fontSize: 60, mb: 2 }} />
