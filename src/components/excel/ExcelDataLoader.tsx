@@ -333,29 +333,29 @@ const ExcelDataLoader = () => {
   // Filtrar datos con debounce para mejor rendimiento
   React.useEffect(() => {
     const timeoutId = setTimeout(() => {
-      let filtered = data;
+    let filtered = data;
 
       // Filtrar por término de búsqueda (optimizado)
-      if (searchTerm) {
+    if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
-        filtered = filtered.filter(item =>
+      filtered = filtered.filter(item =>
           item.CEDULA?.toLowerCase().includes(searchLower) ||
           item.PLACA?.toLowerCase().includes(searchLower) ||
           item.Nombre?.toLowerCase().includes(searchLower) ||
           item.Cargo?.toLowerCase().includes(searchLower) ||
           item.Area?.toLowerCase().includes(searchLower)
-        );
-      }
+      );
+    }
 
-      // Filtrar por estado
-      if (filterStatus !== 'all') {
+    // Filtrar por estado
+    if (filterStatus !== 'all') {
         const statusLower = filterStatus.toLowerCase();
-        filtered = filtered.filter(item => 
+      filtered = filtered.filter(item => 
           item.Estado?.toLowerCase() === statusLower
-        );
-      }
+      );
+    }
 
-      setFilteredData(filtered);
+    setFilteredData(filtered);
       setCurrentPage(1);
     }, 300); // Debounce de 300ms
 
@@ -540,10 +540,10 @@ const ExcelDataLoader = () => {
         const newData = [...prevData];
         const originalIndex = newData.findIndex(item => 
           item._uniqueId === currentData[editingRow]._uniqueId
-        );
-        if (originalIndex !== -1) {
-          newData[originalIndex] = editData;
-        }
+      );
+      if (originalIndex !== -1) {
+        newData[originalIndex] = editData;
+      }
         return newData;
       });
       setEditingRow(null);
@@ -635,8 +635,8 @@ const ExcelDataLoader = () => {
             } else {
               pageNum = currentPage - 2 + i;
             }
-            
-            return (
+
+  return (
               <button
                 key={pageNum}
                 onClick={() => setCurrentPage(pageNum)}
@@ -682,11 +682,11 @@ const ExcelDataLoader = () => {
             </div>
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-                Gestión de Datos de Vehículos
-              </h1>
-              <p className="text-gray-600">
-                Carga, visualiza y gestiona la información de vehículos desde archivos Excel
-              </p>
+            Gestión de Datos de Vehículos
+          </h1>
+          <p className="text-gray-600">
+            Carga, visualiza y gestiona la información de vehículos desde archivos Excel
+          </p>
             </div>
           </div>
         </div>
@@ -928,10 +928,10 @@ const ExcelDataLoader = () => {
               </div>
             </div>
 
-                          {/* Tabla de datos */}
+            {/* Tabla de datos */}
               <div className="bg-white rounded-2xl shadow-lg border border-green-100 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
+              <div className="overflow-x-auto">
+                <table className="w-full">
                     <colgroup>
                       <col className="w-12" /> {/* Checkbox */}
                       <col className="w-32" /> {/* Cédula */}

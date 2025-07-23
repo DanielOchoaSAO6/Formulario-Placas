@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (cedula: string, password: string) => {
     setIsLoading(true);
     setError(null);
-
+    
     try {
       // Usuario especial para RRHH que accede al panel de Excel
       if (cedula === "RRHH" && password === "Sao62025*") {
