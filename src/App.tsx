@@ -12,6 +12,9 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import VehicleVerification from "./components/VehicleVerification";
 import VehicleVerificationScreen from "./components/VehicleVerificationScreen";
+import AdminDashboard from "./components/AdminDashboard";
+import ExcelDataLoader from "./components/excel/ExcelDataLoader";
+import { AuthProvider } from "@/contexts/AuthContext"; 
 
 const App = () => {
   const [queryClient] = useState(() => new QueryClient({
@@ -24,7 +27,7 @@ const App = () => {
   }));
   
   // Estado para manejar la autenticación del usuario
-  const [userData, setUserData] = useState<{ cedula: string; name: string } | null>(null);
+  const [userData, setUserData] = useState<{ cedula?: string; id?: string; name: string; isAdmin?: boolean; isRRHH?: boolean } | null>(null);
   
   // Efecto para cargar los datos del usuario desde localStorage al iniciar
   useEffect(() => {
@@ -52,41 +55,57 @@ const App = () => {
     <ApolloProvider client={apolloClient}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <HotToaster position="top-right" toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-              borderRadius: '8px',
-            },
-            success: {
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
+            <HotToaster position="top-right" toastOptions={{
+              duration: 4000,
               style: {
-                background: '#10B981',
+                background: '#363636',
+                color: '#fff',
+                borderRadius: '8px',
               },
-            },
-            error: {
-              style: {
-                background: '#EF4444',
+              success: {
+                style: {
+                  background: '#10B981',
+                },
               },
-            },
-          }} />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/verificar-vehiculo" element={<VehicleVerification />} />
-              <Route path="/verificacion" element={
-                userData ? (
-                  <VehicleVerificationScreen userData={userData} onLogout={handleLogout} />
-                ) : (
-                  <Index />
-                )
-              } />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+              error: {
+                style: {
+                  background: '#EF4444',
+                },
+              },
+            }} />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/verificar-vehiculo" element={<VehicleVerification />} />
+                <Route path="/verificacion" element={
+                  userData ? (
+                    <VehicleVerificationScreen userData={{cedula: userData.id || userData.cedula || '', name: userData.name}} onLogout={handleLogout} />
+                  ) : (
+                    <Index />
+                  )
+                } />
+                <Route path="/admin" element={
+                  userData?.isAdmin ? (
+                    <AdminDashboard userData={userData} onLogout={handleLogout} />
+                  ) : (
+                    <Index />
+                  )
+                } />
+                <Route path="/rrhh" element={
+                  userData?.isRRHH ? (
+                    <ExcelDataLoader />
+                  ) : (
+                    <Index />
+                  )
+                } />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
         </TooltipProvider>
       </QueryClientProvider>
     </ApolloProvider>

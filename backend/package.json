@@ -10,9 +10,11 @@
     "setup": "ts-node src/scripts/setup.ts",
     "init-dev": "ts-node src/scripts/init-dev.ts",
     "insert-users": "ts-node src/scripts/insert-users.ts",
+    "insert-admin": "ts-node src/scripts/insert-admin.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "prisma:seed": "ts-node prisma/seed.ts"
   },
   "keywords": [
     "express",

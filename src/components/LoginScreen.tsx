@@ -1,11 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { User, Lock, LogIn, Sparkles, Shield, Zap, Check, Info } from "lucide-react";
+import { User, Lock, LogIn, Sparkles, Shield, Zap, Check, Info, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import AnimatedLogo from "./AnimatedLogo";
 import { useAuth } from "@/contexts/AuthContext";
+import { apolloClient } from "@/lib/apolloClient";
+import { gql } from "@apollo/client";
 
 interface LoginScreenProps {
   onSuccess?: () => void; // Callback opcional para cuando el login es exitoso
@@ -17,18 +19,23 @@ const LoginScreen = ({ onSuccess }: LoginScreenProps = {}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [showCedulaExamples, setShowCedulaExamples] = useState(false);
+  const [testUsers, setTestUsers] = useState<Array<{id: string, name: string, password: string}>>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const { toast } = useToast();
-
-  // Ejemplos de cédulas reales de la base de datos
-  const cedulaExamples = [
-    { id: "1152464977", password: "1152464977", name: "SANMARTIN HENAO BRYAN" },
-    { id: "15506018", password: "15506018", name: "BEDOYA JIMENEZ JAIME ALBERTO" },
-    { id: "92256533", password: "92256533", name: "GARCIA MARTINEZ JUAN DE JESUS" },
-    { id: "1003395739", password: "1003395739", name: "MORALES PRADA MANUEL DAVID" }
-  ];
 
   // Usar el contexto de autenticación
   const { login, isLoading: authLoading, error: authError } = useAuth();
+  
+  // Consulta para obtener usuarios de prueba
+  const TEST_USERS_QUERY = gql`
+    query GetTestUsers {
+      testUsers {
+        id
+        name
+        testPassword
+      }
+    }
+  `;
 
   // Sincronizar el estado local de isLoading con el del contexto
   useEffect(() => {
@@ -45,6 +52,53 @@ const LoginScreen = ({ onSuccess }: LoginScreenProps = {}) => {
       });
     }
   }, [authError, toast]);
+  
+  // Cargar usuarios reales desde el backend
+  const loadTestUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      // Obtener usuarios reales del backend
+      const { data } = await apolloClient.query({
+        query: TEST_USERS_QUERY,
+        fetchPolicy: 'network-only' // No usar caché
+      });
+      
+      if (data?.testUsers?.length > 0) {
+        setTestUsers(data.testUsers.map((user: any) => ({
+          id: user.id,
+          name: user.name,
+          password: user.testPassword || user.id // Si no hay contraseña de prueba, usar la cédula
+        })));
+      } else {
+        // Si no hay usuarios en el backend, mostrar mensaje
+        toast({
+          title: "No hay usuarios disponibles",
+          description: "No se encontraron usuarios en la base de datos",
+          variant: "destructive"
+        });
+        setTestUsers([]);
+        setShowCedulaExamples(false);
+      }
+    } catch (error) {
+      console.error("Error al cargar usuarios:", error);
+      toast({
+        title: "Error de conexión",
+        description: "No se pudieron cargar los usuarios. Intente más tarde.",
+        variant: "destructive"
+      });
+      setTestUsers([]);
+      setShowCedulaExamples(false);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+  
+  // Cargar usuarios de prueba al mostrar los ejemplos
+  useEffect(() => {
+    if (showCedulaExamples && testUsers.length === 0) {
+      loadTestUsers();
+    }
+  }, [showCedulaExamples]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +112,15 @@ const LoginScreen = ({ onSuccess }: LoginScreenProps = {}) => {
           title: "¡Bienvenido! 🎉",
           description: "Acceso concedido exitosamente",
         });
+        
+        // Redirigir según el tipo de usuario
+        if (result.user?.isRRHH) {
+          window.location.href = '/rrhh';
+        } else if (result.user?.isAdmin) {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/verificacion';
+        }
         
         // Si hay un callback de éxito, llamarlo
         if (onSuccess) {
@@ -79,7 +142,7 @@ const LoginScreen = ({ onSuccess }: LoginScreenProps = {}) => {
     }
   };
 
-  const handleExampleSelect = (example: typeof cedulaExamples[0]) => {
+  const handleExampleSelect = (example: {id: string, password: string, name: string}) => {
     setCedula(example.id);
     setPassword(example.password);
     setShowCedulaExamples(false);
@@ -100,29 +163,15 @@ const LoginScreen = ({ onSuccess }: LoginScreenProps = {}) => {
       <div className="w-full max-w-md relative z-10">
         {/* Header mejorado - optimizado para móvil */}
         <div className="text-center mb-6 sm:mb-8 animate-fade-in-up">
-          <div className="mb-5 sm:mb-6">
+          <div className="mb-5 sm:mb-6 login-logo">
             <AnimatedLogo />
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 bg-clip-text text-transparent mb-2 sm:mb-3 text-shadow">
             VehíCar
           </h1>
           <p className="text-gray-600 text-base sm:text-lg font-medium px-6">
-            Plataforma inteligente de gestión vehicular
+            Plataforma para la busqueda de vehículos
           </p>
-          <div className="flex items-center justify-center flex-wrap gap-2 sm:gap-4 mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500">
-            <div className="flex items-center space-x-1">
-              <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary-500" />
-              <span>Seguro</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary-500" />
-              <span>Rápido</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary-500" />
-              <span>Intuitivo</span>
-            </div>
-          </div>
         </div>
 
         {/* Tarjeta de login mejorada - optimizada para móvil */}
@@ -161,43 +210,7 @@ const LoginScreen = ({ onSuccess }: LoginScreenProps = {}) => {
                 focusedField === 'cedula' ? 'text-primary-600 scale-105' : 'text-primary-500'
               }`}>
                 Cédula de Identidad
-              </label>
-              
-              {/* Botón de ayuda para mostrar ejemplos */}
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 sm:w-7 sm:h-7 bg-primary-50/70 rounded-full flex items-center justify-center text-primary-600 hover:bg-primary-100/80 transition-colors"
-                onClick={() => setShowCedulaExamples(!showCedulaExamples)}
-              >
-                <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              </button>
-              
-              {/* Ejemplos de cédulas flotantes */}
-              {showCedulaExamples && (
-                <div className="absolute z-10 top-full mt-2 left-0 right-0 bg-white/90 backdrop-blur-md rounded-2xl p-3 border border-primary-200 shadow-lg animate-scale-in">
-                  <p className="text-xs text-gray-500 mb-2 flex items-center justify-center">
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    <span>Selecciona un ejemplo para probar:</span>
-                  </p>
-                  <div className="space-y-2">
-                    {cedulaExamples.map((example) => (
-                      <div 
-                        key={example.id}
-                        className="flex items-center justify-between bg-primary-50/50 hover:bg-primary-100/60 p-2 rounded-xl cursor-pointer transition-colors"
-                        onClick={() => handleExampleSelect(example)}
-                      >
-                        <div className="text-left">
-                          <p className="text-sm font-medium text-gray-800">{example.name}</p>
-                          <p className="text-xs text-gray-500">Cédula: {example.id}</p>
-                        </div>
-                        <button className="text-primary-600 h-6 w-6 rounded-full hover:bg-white/70 flex items-center justify-center">
-                          <Check className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              </label> 
             </div>
 
             {/* Campo Contraseña mejorado */}
@@ -252,22 +265,12 @@ const LoginScreen = ({ onSuccess }: LoginScreenProps = {}) => {
               )}
             </Button>
           </form>
-
-          {/* Información de prueba mejorada */}
-          <div className="mt-6 sm:mt-8 glass rounded-[16px] sm:rounded-[20px] p-3 sm:p-4 border border-primary-200/30 relative overflow-hidden">
-            <div className="absolute top-0 left-1/2 w-16 h-px bg-gradient-to-r from-transparent via-primary-400/50 to-transparent transform -translate-x-1/2"></div>
-            <p className="text-xs font-semibold mb-2 flex items-center justify-center space-x-2 text-gray-600">
-              <Sparkles className="h-3 w-3 text-primary-500" />
-              <span>Presiona el botón <Info className="h-3 w-3 text-primary-500 inline-block mx-1" /> para ver credenciales de prueba</span>
-              <Sparkles className="h-3 w-3 text-primary-500" />
-            </p>
-          </div>
         </div>
         
         {/* Footer con información adicional - nuevo para móvil */}
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500">
-            © 2024 VehíCar - Versión 1.0.0
+            © 2025 VehíCar - Versión 1.0.0
           </p>
           <div className="mt-2 flex justify-center space-x-3">
             <button className="text-xs text-primary-600 hover:text-primary-700">Ayuda</button>

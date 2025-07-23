@@ -5,13 +5,13 @@ import { RetryLink } from '@apollo/client/link/retry';
 
 // Crear el enlace HTTP
 const httpLink = createHttpLink({
-  uri: 'http://localhost:4000/graphql', // Ajusta esta URL según tu configuración
+  uri: 'https://vehicar.sao6.com.co/api/graphql', // Ajusta esta URL según tu configuración
 });
 
 // Configurar el enlace de autenticación
 const authLink = setContext((_, { headers }) => {
   // Obtener el token de autenticación del almacenamiento local
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('authToken');
   
   // Devolver los encabezados al contexto para que se puedan pasar al enlace HTTP
   return {

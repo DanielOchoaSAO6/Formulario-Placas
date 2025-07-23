@@ -38,9 +38,11 @@ model Post {
 model Vehicle {
   id            String   @id @default(uuid())
   placa         String   @unique // Placa del vehículo
+  cedula        String   // Cédula del conductor
   estado        String   // Activo, Inactivo, etc.
   tipoVehiculo  String   // MOTOCICLETA, AUTOMOVIL, etc.
   origen        String   // PESV u otros
+  nombre        String?  // Nombre del conductor (opcional)
   conductor     User?    @relation(fields: [conductorId], references: [id])
   conductorId   String?  // Cédula del conductor (opcional)
   cargo         String   // Cargo del conductor
