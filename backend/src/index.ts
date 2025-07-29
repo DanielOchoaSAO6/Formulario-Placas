@@ -25,7 +25,12 @@ async function startServer() {
     
     // Configurar CORS - debe estar antes que cualquier otro middleware
     app.use(cors({
-      origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:8080'],
+      origin: [
+        'http://localhost:8080',
+        'http://localhost:3000', 
+        'http://vehicar.sao6.com.co', 
+        'www.vehicar.sao6.com.co'
+      ],
       credentials: true
     }));
 

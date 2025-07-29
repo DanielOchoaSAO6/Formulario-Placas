@@ -10,9 +10,11 @@
     "setup": "ts-node src/scripts/setup.ts",
     "init-dev": "ts-node src/scripts/init-dev.ts",
     "insert-users": "ts-node src/scripts/insert-users.ts",
+    "insert-admin": "ts-node src/scripts/insert-admin.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "prisma:seed": "ts-node prisma/seed.ts"
   },
   "keywords": [
     "express",
@@ -42,6 +44,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "mssql": "^10.0.1",
     "mysql2": "^3.14.1",
     "node-fetch": "^3.3.2",
     "react-hot-toast": "^2.5.2"
@@ -53,6 +56,7 @@
     "@types/express": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
+    "@types/mssql": "^9.1.5",
     "@types/node": "^22.15.29",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.6",

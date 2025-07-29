@@ -11,7 +11,7 @@ const httpLink = createHttpLink({
 // Configurar el enlace de autenticación
 const authLink = setContext((_, { headers }) => {
   // Obtener el token de autenticación del almacenamiento local
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('authToken');
   
   // Devolver los encabezados al contexto para que se puedan pasar al enlace HTTP
   return {

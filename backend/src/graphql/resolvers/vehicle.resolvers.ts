@@ -1,22 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { UserInputError } from 'apollo-server-express';
-import { format } from 'date-fns';
-import { googleSheetsService } from '../../services/googleSheets.service';
+import { getNombreByCedula } from '../../lib/sqlServer';
 
 const prisma = new PrismaClient();
-
-// Función para guardar datos en Google Sheets
-async function saveToGoogleSheets(placa: string, cedula: string) {
-  try {
-    // Usar el servicio de Google Sheets para guardar los datos
-    const result = await googleSheetsService.addVehicleRecord(placa, cedula);
-    return result;
-  } catch (error) {
-    console.error('Error al guardar en Google Sheets:', error);
-    // No lanzamos el error para que no afecte al flujo principal
-    return false;
-  }
-}
 
 export const vehicleResolvers = {
   Query: {
@@ -44,13 +30,25 @@ export const vehicleResolvers = {
         
         const vehicle = vehiclesArray[0];
         
+        // Obtener el nombre desde SQL Server usando la cédula
+        let nombrePersona = null;
+        if (vehicle.cedula) {
+          try {
+            nombrePersona = await getNombreByCedula(vehicle.cedula);
+          } catch (error) {
+            console.error('Error al obtener nombre desde SQL Server:', error);
+          }
+        }
+        
         // Formatear el resultado para que coincida con el esquema GraphQL
         return {
           id: vehicle.id,
           placa: vehicle.placa,
+          cedula: vehicle.cedula,
           estado: vehicle.estado,
           tipoVehiculo: vehicle.tipoVehiculo,
           origen: vehicle.origen,
+          nombre: nombrePersona,
           conductorId: vehicle.conductorId,
           cargo: vehicle.cargo,
           area: vehicle.area,
@@ -63,7 +61,7 @@ export const vehicleResolvers = {
           } : null
         };
       } catch (error) {
-        console.error('Error al buscar vehículo:', error);
+        console.error('Vehículo no encontrado:', error);
         throw error;
       }
     },
@@ -71,55 +69,64 @@ export const vehicleResolvers = {
     // Listar todos los vehículos (con paginación opcional)
     getAllVehicles: async (_: any, { skip = 0, take = 10 }: { skip?: number; take?: number }) => {
       try {
-        // Obtener vehículos con paginación usando SQL directo
-        const vehicles = await prisma.$queryRaw`
-          SELECT v.*, u.name as conductorName, u.email as conductorEmail 
-          FROM Vehicle v 
-          LEFT JOIN User u ON v.conductorId = u.id 
-          ORDER BY v.placa ASC 
-          LIMIT ${take} OFFSET ${skip}
-        `;
+        const vehicles = await prisma.vehicle.findMany({
+          skip,
+          take,
+          orderBy: { createdAt: 'desc' },
+          include: { conductor: true }
+        });
         
-        // Contar el total de vehículos
-        const countResult = await prisma.$queryRaw`SELECT COUNT(*) as total FROM Vehicle`;
-        const totalVehicles = Array.isArray(countResult) && countResult.length > 0 ? 
-          Number(countResult[0].total) : 0;
-        
-        // Formatear los resultados
-        const formattedVehicles = Array.isArray(vehicles) ? vehicles.map(vehicle => ({
-          id: vehicle.id,
-          placa: vehicle.placa,
-          estado: vehicle.estado,
-          tipoVehiculo: vehicle.tipoVehiculo,
-          origen: vehicle.origen,
-          conductorId: vehicle.conductorId,
-          cargo: vehicle.cargo,
-          area: vehicle.area,
-          createdAt: vehicle.createdAt,
-          updatedAt: vehicle.updatedAt,
-          conductor: vehicle.conductorId ? {
-            id: vehicle.conductorId,
-            name: vehicle.conductorName,
-            email: vehicle.conductorEmail
-          } : null
-        })) : [];
+        const totalCount = await prisma.vehicle.count();
         
         return {
-          vehicles: formattedVehicles,
-          totalCount: totalVehicles
+          vehicles,
+          totalCount
         };
       } catch (error) {
-        console.error('Error al listar vehículos:', error);
+        console.error('Error al obtener vehículos:', error);
         throw error;
+      }
+    },
+
+    // Obtener vehículos por múltiples placas (para comparación con Excel)
+    getVehiclesByPlacas: async (_: any, { placas }: { placas: string[] }) => {
+      try {
+        // Normalizar las placas
+        const normalizedPlacas = placas.map(placa => placa.toUpperCase().trim());
+        
+        const vehicles = await prisma.vehicle.findMany({
+          where: {
+            placa: {
+              in: normalizedPlacas
+            }
+          },
+          include: { conductor: true }
+        });
+        
+        return vehicles;
+      } catch (error) {
+        console.error('Error al obtener vehículos por placas:', error);
+        throw error;
+      }
+    },
+
+    // Obtener nombre de persona por cédula desde SQL Server
+    getNombreByCedula: async (_: any, { cedula }: { cedula: string }) => {
+      try {
+        const nombre = await getNombreByCedula(cedula);
+        return nombre;
+      } catch (error) {
+        console.error('Error al obtener nombre por cédula:', error);
+        throw new UserInputError(`Error al consultar el nombre para la cédula ${cedula}`);
       }
     }
   },
-  
+
   Mutation: {
     // Crear un nuevo vehículo
     createVehicle: async (_: any, { input }: { input: any }) => {
       try {
-        const { placa, conductorId = null, estado = 'ACTIVO', tipoVehiculo = 'AUTOMOVIL', origen = 'REGISTRO', cargo = '', area = '' } = input;
+        const { placa, cedula, conductorId = null, estado = 'ACTIVO', tipoVehiculo = 'AUTOMOVIL', origen = 'REGISTRO', cargo = '', area = '' } = input;
         
         // Normalizar la placa
         const normalizedPlaca = placa.toUpperCase().trim();
@@ -136,6 +143,7 @@ export const vehicleResolvers = {
         // Preparar los datos para crear el vehículo
         const vehicleData: any = {
           placa: normalizedPlaca,
+          cedula: cedula.trim(),
           estado,
           tipoVehiculo,
           origen,
@@ -163,22 +171,198 @@ export const vehicleResolvers = {
           }
         });
         
-        // Guardar en Google Sheets (proceso asíncrono que no bloquea la respuesta)
-        saveToGoogleSheets(normalizedPlaca, conductorId)
-          .then(success => {
-            if (success) {
-              console.log(`Vehículo ${normalizedPlaca} guardado en Google Sheets`);
-            } else {
-              console.error(`Error al guardar vehículo ${normalizedPlaca} en Google Sheets`);
-            }
-          })
-          .catch(error => {
-            console.error('Error en el proceso de guardado en Google Sheets:', error);
-          });
+        // Guardar también en Google Sheets si es necesario
+        // Temporalmente desactivado hasta configurar credenciales correctas
+        /*
+        try {
+          await saveToGoogleSheets(vehicle.placa, vehicle.cedula);
+        } catch (error) {
+          console.error('Error al guardar en Google Sheets:', error);
+          // No interrumpir el flujo si hay error en Google Sheets
+        }
+        */
         
         return vehicle;
       } catch (error) {
         console.error('Error al crear vehículo:', error);
+        throw error;
+      }
+    },
+
+    // Inserción masiva de vehículos desde Excel (optimizada)
+    bulkInsertVehicles: async (_: any, { vehicles }: { vehicles: any[] }) => {
+      const errors: string[] = [];
+      let insertedCount = 0;
+      let updatedCount = 0;
+      let skippedCount = 0;
+      
+      try {
+        // Normalizar y preparar todos los datos de una vez
+        const normalizedVehicles = vehicles.map(vehicleData => ({
+          ...vehicleData,
+          placa: vehicleData.placa.toUpperCase().trim(),
+          cedula: vehicleData.cedula ? vehicleData.cedula.trim() : '',
+          estado: vehicleData.estado || 'ACTIVO',
+          tipoVehiculo: vehicleData.tipoVehiculo || 'AUTOMOVIL',
+          origen: vehicleData.origen || 'EXCEL',
+          cargo: vehicleData.cargo || '',
+          area: vehicleData.area || ''
+        }));
+
+        // Obtener todas las placas para verificar duplicados de una vez
+        const placas = normalizedVehicles.map(v => v.placa);
+        const existingVehicles = await prisma.vehicle.findMany({
+          where: { placa: { in: placas } },
+          select: { placa: true }
+        });
+        
+        const existingPlacas = new Set(existingVehicles.map(v => v.placa));
+        
+        // Obtener todas las cédulas para verificar usuarios de una vez
+        const cedulas = normalizedVehicles
+          .map(v => v.cedula)
+          .filter(cedula => cedula && cedula.trim());
+        
+        const existingUsers = await prisma.user.findMany({
+          where: { id: { in: cedulas } },
+          select: { id: true }
+        });
+        
+        const existingUserIds = new Set(existingUsers.map(u => u.id));
+        
+        // Separar vehículos nuevos de los existentes
+        const newVehicles = normalizedVehicles.filter(v => !existingPlacas.has(v.placa));
+        const existingVehiclesToUpdate = normalizedVehicles.filter(v => existingPlacas.has(v.placa));
+        
+        // Procesar vehículos nuevos en lotes
+        if (newVehicles.length > 0) {
+          const BATCH_SIZE = 50;
+          for (let i = 0; i < newVehicles.length; i += BATCH_SIZE) {
+            const batch = newVehicles.slice(i, i + BATCH_SIZE);
+            
+            const vehiclesToCreate = batch.map(vehicleData => ({
+              placa: vehicleData.placa,
+              cedula: vehicleData.cedula,
+              estado: vehicleData.estado,
+              tipoVehiculo: vehicleData.tipoVehiculo,
+              origen: vehicleData.origen,
+              conductorId: existingUserIds.has(vehicleData.cedula) ? vehicleData.cedula : null,
+              cargo: vehicleData.cargo,
+              area: vehicleData.area
+            }));
+            
+            try {
+              await prisma.vehicle.createMany({
+                data: vehiclesToCreate,
+                skipDuplicates: true
+              });
+              
+              insertedCount += batch.length;
+            } catch (batchError: any) {
+              console.error(`Error en lote ${i / BATCH_SIZE + 1}:`, batchError);
+              errors.push(`Error en lote ${i / BATCH_SIZE + 1}: ${batchError.message}`);
+            }
+          }
+        }
+        
+        // Procesar vehículos existentes (actualizaciones)
+        if (existingVehiclesToUpdate.length > 0) {
+          for (const vehicleData of existingVehiclesToUpdate) {
+            try {
+              await prisma.vehicle.update({
+                where: { placa: vehicleData.placa },
+                data: {
+                  cedula: vehicleData.cedula,
+                  estado: vehicleData.estado,
+                  tipoVehiculo: vehicleData.tipoVehiculo,
+                  origen: vehicleData.origen,
+                  conductorId: existingUserIds.has(vehicleData.cedula) ? vehicleData.cedula : null,
+                  cargo: vehicleData.cargo,
+                  area: vehicleData.area
+                }
+              });
+              updatedCount++;
+            } catch (updateError: any) {
+              console.error(`Error al actualizar ${vehicleData.placa}:`, updateError);
+              errors.push(`Error al actualizar ${vehicleData.placa}: ${updateError.message}`);
+            }
+          }
+        }
+        
+        // Contar vehículos omitidos (duplicados que no se procesaron)
+        skippedCount = existingVehiclesToUpdate.length - updatedCount;
+        
+        // Construir mensaje de resultado
+        let message = `Proceso completado: `;
+        if (insertedCount > 0) message += `${insertedCount} insertados, `;
+        if (updatedCount > 0) message += `${updatedCount} actualizados, `;
+        if (skippedCount > 0) message += `${skippedCount} omitidos`;
+        
+        return {
+          success: insertedCount > 0 || updatedCount > 0,
+          insertedCount,
+          updatedCount,
+          skippedCount,
+          errors: errors.slice(0, 10), // Limitar errores para no saturar
+          message
+        };
+        
+      } catch (error: any) {
+        console.error('Error en inserción masiva:', error);
+        return {
+          success: false,
+          insertedCount,
+          updatedCount: 0,
+          skippedCount: 0,
+          errors: [...errors.slice(0, 5), `Error general: ${error.message}`],
+          message: 'Error en la inserción masiva de vehículos'
+        };
+      }
+    },
+
+    // Actualizar cédula de un vehículo específico
+    updateVehicleCedula: async (_: any, { placa, cedula }: { placa: string; cedula: string }) => {
+      try {
+        const normalizedPlaca = placa.toUpperCase().trim();
+        const normalizedCedula = cedula.trim();
+        
+        // Verificar si el vehículo existe
+        const existingVehicle = await prisma.vehicle.findUnique({
+          where: { placa: normalizedPlaca }
+        });
+        
+        if (!existingVehicle) {
+          throw new UserInputError(`No se encontró vehículo con placa ${normalizedPlaca}`);
+        }
+        
+        // Verificar si existe un usuario con esa cédula
+        let conductorId = null;
+        if (normalizedCedula) {
+          const conductor = await prisma.user.findUnique({
+            where: { id: normalizedCedula }
+          });
+          
+          if (conductor) {
+            conductorId = conductor.id;
+          }
+        }
+        
+        // Actualizar el vehículo
+        const updatedVehicle = await prisma.vehicle.update({
+          where: { placa: normalizedPlaca },
+          data: {
+            cedula: normalizedCedula,
+            conductorId
+          },
+          include: {
+            conductor: true
+          }
+        });
+        
+        return updatedVehicle;
+        
+      } catch (error) {
+        console.error('Error al actualizar cédula:', error);
         throw error;
       }
     }

@@ -56,6 +56,12 @@ input UpdatePostInput {
   published: Boolean
 }
 
+type TestUser {
+  id: ID!
+  name: String!
+  testPassword: String
+}
+
 type Query {
   me: User
   users: [User!]!
@@ -64,27 +70,38 @@ type Query {
   post(id: ID!): Post
   postsByUser(userId: ID!): [Post!]!
   getVehicleByPlaca(placa: String!): Vehicle
+  getVehicleByCedula(cedula: String!): Vehicle
   getAllVehicles(skip: Int, take: Int): VehicleConnection!
+  getVehiclesByPlacas(placas: [String!]!): [Vehicle!]!
   getVehicleVerificationLogs(skip: Int, take: Int): VehicleVerificationLogConnection!
+  getNombreByCedula(cedula: String!): String
+  testUsers: [TestUser!]!
 }
 
 type Mutation {
   signup(input: CreateUserInput!): AuthPayload!
   login(id: String!, password: String!): AuthPayload!
+  updateUser(id: ID!, name: String, email: String, role: Role): User!
+  deleteUser(id: ID!): User!
+  changePassword(id: ID!, currentPassword: String!, newPassword: String!): User!
   createPost(input: CreatePostInput!): Post!
   updatePost(input: UpdatePostInput!): Post!
   deletePost(id: ID!): Post!
   publishPost(id: ID!): Post!
   logVehicleVerification(input: VehicleVerificationInput!): VehicleVerificationLog!
   createVehicle(input: CreateVehicleInput!): Vehicle!
+  bulkInsertVehicles(vehicles: [BulkVehicleInput!]!): BulkInsertResult!
+  updateVehicleCedula(placa: String!, cedula: String!): Vehicle!
 }
 
 type Vehicle {
   id: ID!
   placa: String!
+  cedula: String!
   estado: String!
   tipoVehiculo: String!
   origen: String!
+  nombre: String
   conductorId: String
   conductor: User
   cargo: String!
@@ -92,6 +109,8 @@ type Vehicle {
   createdAt: String!
   updatedAt: String!
 }
+
+
 
 type VehicleConnection {
   vehicles: [Vehicle!]!
@@ -124,10 +143,31 @@ input VehicleVerificationInput {
 
 input CreateVehicleInput {
   placa: String!
+  cedula: String!
   conductorId: String
   estado: String
   tipoVehiculo: String
   origen: String
   cargo: String
   area: String
+}
+
+input BulkVehicleInput {
+  placa: String!
+  cedula: String!
+  estado: String!
+  tipoVehiculo: String!
+  origen: String!
+  nombre: String!
+  cargo: String!
+  area: String!
+}
+
+type BulkInsertResult {
+  success: Boolean!
+  insertedCount: Int!
+  updatedCount: Int!
+  skippedCount: Int!
+  errors: [String!]!
+  message: String!
 }

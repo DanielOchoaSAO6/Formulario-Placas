@@ -18,7 +18,10 @@ const Index = () => {
   // Preparar los datos del usuario en el formato esperado por los componentes
   const userData = user ? {
     cedula: user.id,
+    id: user.id,
     name: user.name,
+    email: user.email,
+    role: user.role,
     isAdmin: user.role === 'ADMIN'
   } : null;
 
