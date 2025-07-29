@@ -5,7 +5,7 @@ import { RetryLink } from '@apollo/client/link/retry';
 
 // Crear el enlace HTTP
 const httpLink = createHttpLink({
-  uri: 'https://vehicar.sao6.com.co/api/graphql', // Ajusta esta URL según tu configuración
+  uri: 'http://localhost:4000/graphql', // Ajusta esta URL según tu configuración
 });
 
 // Configurar el enlace de autenticación

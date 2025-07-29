@@ -70,9 +70,11 @@ type Query {
   post(id: ID!): Post
   postsByUser(userId: ID!): [Post!]!
   getVehicleByPlaca(placa: String!): Vehicle
+  getVehicleByCedula(cedula: String!): Vehicle
   getAllVehicles(skip: Int, take: Int): VehicleConnection!
   getVehiclesByPlacas(placas: [String!]!): [Vehicle!]!
   getVehicleVerificationLogs(skip: Int, take: Int): VehicleVerificationLogConnection!
+  getNombreByCedula(cedula: String!): String
   testUsers: [TestUser!]!
 }
 
@@ -107,6 +109,8 @@ type Vehicle {
   createdAt: String!
   updatedAt: String!
 }
+
+
 
 type VehicleConnection {
   vehicles: [Vehicle!]!

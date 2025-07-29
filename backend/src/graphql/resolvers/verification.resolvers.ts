@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import { UserInputError } from 'apollo-server-express';
-import { googleSheetsService } from '../../services/googleSheets.service';
 
 const prisma = new PrismaClient();
 
@@ -72,13 +71,6 @@ export const verificationResolvers = {
           const startTimeDate = startTime ? new Date(startTime) : new Date();
           const endTimeDate = new Date(endTime);
           
-          await googleSheetsService.addVehicleVerificationLog(
-            placa.toUpperCase().trim(),
-            encontrado,
-            userId,
-            startTimeDate,
-            endTimeDate
-          );
           
           console.log(`Verificación de vehículo ${placa} guardada en Google Sheets`);
         } catch (sheetsError) {

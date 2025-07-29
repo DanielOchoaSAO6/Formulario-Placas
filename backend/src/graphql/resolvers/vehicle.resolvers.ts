@@ -1,23 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { UserInputError } from 'apollo-server-express';
-import { format } from 'date-fns';
-import { googleSheetsService } from '../../services/googleSheets.service';
-import bcrypt from 'bcryptjs';
+import { getNombreByCedula } from '../../lib/sqlServer';
 
 const prisma = new PrismaClient();
-
-// Función para guardar datos en Google Sheets
-async function saveToGoogleSheets(placa: string, cedula: string) {
-  try {
-    // Usar el servicio de Google Sheets para guardar los datos
-    const result = await googleSheetsService.addVehicleRecord(placa, cedula);
-    return result;
-  } catch (error) {
-    console.error('Error al guardar en Google Sheets:', error);
-    // No lanzamos el error para que no afecte al flujo principal
-    return false;
-  }
-}
 
 export const vehicleResolvers = {
   Query: {
@@ -45,13 +30,25 @@ export const vehicleResolvers = {
         
         const vehicle = vehiclesArray[0];
         
+        // Obtener el nombre desde SQL Server usando la cédula
+        let nombrePersona = null;
+        if (vehicle.cedula) {
+          try {
+            nombrePersona = await getNombreByCedula(vehicle.cedula);
+          } catch (error) {
+            console.error('Error al obtener nombre desde SQL Server:', error);
+          }
+        }
+        
         // Formatear el resultado para que coincida con el esquema GraphQL
         return {
           id: vehicle.id,
           placa: vehicle.placa,
+          cedula: vehicle.cedula,
           estado: vehicle.estado,
           tipoVehiculo: vehicle.tipoVehiculo,
           origen: vehicle.origen,
+          nombre: nombrePersona,
           conductorId: vehicle.conductorId,
           cargo: vehicle.cargo,
           area: vehicle.area,
@@ -64,7 +61,7 @@ export const vehicleResolvers = {
           } : null
         };
       } catch (error) {
-        console.error('Error al buscar vehículo:', error);
+        console.error('Vehículo no encontrado:', error);
         throw error;
       }
     },
@@ -111,9 +108,20 @@ export const vehicleResolvers = {
         console.error('Error al obtener vehículos por placas:', error);
         throw error;
       }
+    },
+
+    // Obtener nombre de persona por cédula desde SQL Server
+    getNombreByCedula: async (_: any, { cedula }: { cedula: string }) => {
+      try {
+        const nombre = await getNombreByCedula(cedula);
+        return nombre;
+      } catch (error) {
+        console.error('Error al obtener nombre por cédula:', error);
+        throw new UserInputError(`Error al consultar el nombre para la cédula ${cedula}`);
+      }
     }
   },
-  
+
   Mutation: {
     // Crear un nuevo vehículo
     createVehicle: async (_: any, { input }: { input: any }) => {
